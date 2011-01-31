@@ -160,7 +160,7 @@ sub build_file {
     my $job = MT->model('ts_job')->load({ uniqkey => $fi->id });
     #MT->log("Request to build");
     # Only remove jobs added by this plugin.
-    if ($job && $job->batch_id > 0) {
+    if ($job && $job->batch_id && $job->batch_id > 0) {
         # A file has been rebuilt by some other process. Let's go
         # ahead and remove it from the queue since there is not need
         # to publish it twice.
@@ -199,7 +199,7 @@ sub send_all_to_queue {
             # a file is asked to be rebuilt, the higher the priority it will
             # become.
             my $max_priority = _get_default_job_priority($fi);
-            if ($job->priority < $max_priority) {
+            if ($job->priority && $job->priority < $max_priority) {
                 $job->priority( $job->priority + 1 );
                 $job->save;
             }
