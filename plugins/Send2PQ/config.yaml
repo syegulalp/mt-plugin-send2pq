@@ -21,7 +21,7 @@ callbacks:
 
 page_actions:
   theme_dashboard:
-    custom_css:
+    send_to_queue:
       label: 'Send to Publish Queue'
       order: 200
       mode: 'send_to_queue'
