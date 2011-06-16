@@ -24,25 +24,38 @@ sub task_cleanup {
     foreach my $batch (@batches) {
         if (MT->model('ts_job')->exist( { batch_id => $batch->id } )) {
             # do nothing at this time
-            # possible future: see how long the job has been on the queue, send warning if it has
-            # been on the queue too long
+            # possible future: see how long the job has been on the queue,
+            # send warning if it has been on the queue too long
         } else {
             if ($batch->email) {
                 MT->log({ 
-                    message => "It appears the publishing batch with an ID of " .$batch->id. " has finished. Notifying " . $batch->email . " and cleaning up.",
+                    message => 'It appears the publishing batch with an ID '
+                             . 'of ' .$batch->id. ' has finished. Notifying ' 
+                             . $batch->email . ' and cleaning up.',
                     class   => "system",
                     blog_id => $batch->blog->id,
                     level   => MT::Log::INFO()
                 });
-                my $date = format_ts( "%Y-%m-%d", $batch->created_on, $batch->blog, undef );
+                my $date = format_ts( "%Y-%m-%d", 
+                                      $batch->created_on, 
+                                      $batch->blog, 
+                                      undef );
                 require MT::Mail;
-                my %head = ( To => $batch->email, Subject => '['.$batch->blog->name.'] Publishing Batch Finished' );
-                my $body = "The publishing batch you initiated on $date has completed. See for yourself:\n\n" . $batch->blog->site_url . "\n\n";
+                my %head = (
+                    To => $batch->email,
+                    Subject => '['
+                             . $batch->blog->name
+                             . '] Publishing Batch Finished'
+                );
+                my $body = "The publishing batch you initiated on $date has "
+                         . "completed. See for yourself:\n\n"
+                         . $batch->blog->site_url . "\n\n";
                 
                 if ( !MT::Mail->send(\%head, $body) ) {
                     # Mail failed to be sent.
                     MT->log({
-                        message => 'Send to Publish Queue error: '.MT::Mail->errstr,
+                        message => 'Send to Publish Queue error: '
+                                 . MT::Mail->errstr,
                         class   => 'system',
                         blog_id => $batch->blog->id,
                         level   => MT::Log::ERROR()
@@ -50,15 +63,18 @@ sub task_cleanup {
                     # The blog was successfully published, however, so just
                     # publish a notice to the Activity Log.
                     MT->log({
-                        message => "It appears the publishing batch with an ID of " .$batch->id. " has finished. Cleaning up.",
-                        class   => "system",
+                        message => 'It appears the publishing batch with an '
+                                 . 'ID of '.$batch->id.' has finished. '
+                                 . 'Cleaning up.',
+                        class   => 'system',
                         blog_id => $batch->blog->id,
                         level   => MT::Log::INFO()
                     });
                 }
             } else {
                 MT->log({
-                    message => "It appears the publishing batch with an ID of " .$batch->id. " has finished. Cleaning up.",
+                    message => 'It appears the publishing batch with an ID '
+                             . 'of '.$batch->id.' has finished. Cleaning up.',
                     class   => "system",
                     blog_id => $batch->blog->id,
                     level   => MT::Log::INFO()
@@ -98,7 +114,8 @@ sub send_to_queue {
         _create_batch( $app->blog->id, $q->param('email') );
         return $app->load_tmpl( 'dialog/close.tmpl' );
     }
-    $param->{batch_exists}  = MT->model('pub_batch')->exist({ blog_id => $app->blog->id });
+    $param->{batch_exists}
+        = MT->model('pub_batch')->exist({ blog_id => $app->blog->id });
     $param->{blog_id}       = $app->blog->id;
     $param->{default_email} = $app->user->email;
     return $app->load_tmpl( 'dialog/send_to_queue.tmpl', $param );
@@ -117,7 +134,8 @@ sub _create_batch {
     $batch->save
         or return $app->error(
             $app->translate(
-                "Unable to create a publishing batch and send content to the publish queue",
+                'Unable to create a publishing batch and '
+                .'send content to the publish queue',
                 $batch->errstr
             )
         );
@@ -142,7 +160,7 @@ sub build_file {
     my $job = MT->model('ts_job')->load({ uniqkey => $fi->id });
     #MT->log("Request to build");
     # Only remove jobs added by this plugin.
-    if ($job && ($job->batch_id || 0) > 0) {
+    if ($job && $job->batch_id && $job->batch_id > 0) {
         # A file has been rebuilt by some other process. Let's go
         # ahead and remove it from the queue since there is not need
         # to publish it twice.
@@ -161,24 +179,27 @@ sub send_all_to_queue {
     my $fi = $args{file_info};
 
     unless ($batch) {
-        # Batch does not exist, so assume we can publish. Let other build_file_filters determine
-        # course of action.
-        # In other words, this publish request is coming from somewhere else other than a user
-        # initiating a "Publish via Queue" method. So short circuit.
-
-        # However, before we just pass on a chance to do something useful, let's see if a job
-        # already exists on the queue for the corresponding file. If so, let's do one of two
-        # things:
-        #   a) TODO - if the file is getting published synchronously - REMOVE IT from the queue
-        #   b) increase the priority of the job, for each request to publish it
+        # Batch does not exist, so assume we can publish. Let other
+        # build_file_filters determine course of action.
+        # In other words, this publish request is coming from somewhere else
+        # other than a user initiating a "Publish via Queue" method. So short
+        # circuit.
+        #
+        # However, before we just pass on a chance to do something useful,
+        # let's see if a job already exists on the queue for the corresponding
+        # file. If so, let's do one of two things:
+        #   a) TODO - if the file is getting published synchronously
+        #           - REMOVE IT from the queue
+        #   b) increase the priority of the job for each request to publish it
 
         my $job = MT->model('ts_job')->load({ uniqkey => $fi->id });
         if ($job) {
-            # The job exists! Ok, so if its current priority is less than its default
-            # then let's increment the priority so that the more often a file is asked to be 
-            # rebuilt, the higher the priority it will become.
+            # The job exists! Ok, so if its current priority is less than its
+            # default then let's increment the priority so that the more often
+            # a file is asked to be rebuilt, the higher the priority it will
+            # become.
             my $max_priority = _get_default_job_priority($fi);
-            if ($job->priority < $max_priority) {
+            if ($job->priority && $job->priority < $max_priority) {
                 $job->priority( $job->priority + 1 );
                 $job->save;
             }
@@ -187,10 +208,10 @@ sub send_all_to_queue {
         return 1;
     }
 
-    # If we have gotten this far, then we know for sure that the request to build this
-    # file has come from a user asking Send to Queue to do so.
-    # The job *may* already exist on the queue, if so, let's just let TheSchwartz decide
-    # what to do.
+    # If we have gotten this far, then we know for sure that the request to
+    # build this file has come from a user asking Send to Queue to do so.
+    # The job *may* already exist on the queue, if so, let's just let
+    # TheSchwartz decide what to do.
 
     require MT::PublishOption;
     my $throttle = MT::PublishOption::get_throttle($fi);
@@ -205,18 +226,22 @@ sub send_all_to_queue {
         return $args{force} ? 1 : 0;
     }
 
-    # Let's default to the lowest priority possible. That way a request to republish a 
-    # HUGE site will not penalize the priority of jobs not yet added to the queue.
-    # Further above though, this is compensated for because every time a request to 
-    # build a file is made, Send2Queue will check to see if a job already exists for
-    # that file and if so, increase its priority.
+    # Let's default to the lowest priority possible. That way a request to
+    # republish a HUGE site will not penalize the priority of jobs not yet
+    # added to the queue. Further above though, this is compensated for
+    # because every time a request to build a file is made, Send2Queue will
+    # check to see if a job already exists for that file and if so, increase
+    # its priority.
     #my $priority = _get_default_job_priority($fi);
     my $priority = 1;
 
     require MT::TheSchwartz;
     my $ts = MT::TheSchwartz->instance();
-    my $func_id = $ts->funcname_to_id($ts->driver_for,$ts->shuffled_databases,'MT::Worker::Publish');
-
+    my $func_id = $ts->funcname_to_id(
+        $ts->driver_for,
+        $ts->shuffled_databases,
+        'MT::Worker::Publish'
+    );
     my $job = MT->model('ts_job')->new();
     $job->uniqkey( $fi->id );
     $job->funcid( $func_id );
@@ -232,7 +257,8 @@ sub send_all_to_queue {
     # Note to self - this does not appear to utilize TheSchwart's insert 
     # routine. Should this be fixed?
     # $job->save or MT->log({
-    # Using the insert routine seems to work... and fixes an error on a client's site.
+    # Using the insert routine seems to work... and fixes an error on a
+    # client's site.
     $job->insert or MT->log({
         blog_id => $fi->blog_id,
         message => "Could not queue publish job for Send2Q: " . $job->errstr

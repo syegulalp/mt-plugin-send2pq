@@ -19,9 +19,16 @@ sub blog {
     $obj->cache_property('blog', sub {
         my $blog_id = $obj->blog_id;
         MT->model('blog')->load($blog_id) or
-            $obj->error(MT->translate(
-                            "Load of blog '[_1]' failed: [_2]", $blog_id, MT->model('blog')->errstr
-                            || MT->translate("record does not exist.")));
+            $obj->error(
+                MT->translate(
+                    "Load of blog '[_1]' failed: [_2]",
+                    $blog_id,
+                    (
+                           MT->model('blog')->errstr
+                        || MT->translate("record does not exist.")
+                    )
+                )
+            );
     });
 }
 
