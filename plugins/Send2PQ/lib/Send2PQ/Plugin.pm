@@ -242,7 +242,12 @@ sub send_all_to_queue {
         $ts->shuffled_databases,
         'MT::Worker::Publish'
     );
-    my $job = MT->model('ts_job')->new();
+    my $job = MT->model('ts_job')->load({
+        uniqkey => $fi->id,
+        funcid  => $func_id,
+    });
+    if ($job) { return 0; }
+    $job = MT->model('ts_job')->new;
     $job->uniqkey( $fi->id );
     $job->funcid( $func_id );
     if ($job->has_column('batch_id')) {
