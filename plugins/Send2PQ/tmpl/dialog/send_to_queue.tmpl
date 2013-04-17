@@ -21,7 +21,8 @@
 <form name="send_to_queue"
     method="post"
     action="<mt:Var name="script_url">"
-    onclick="document.getElementById('continue').disabled = true; document.getElementById('working').style.display = 'inline-block';">
+    onclick="document.getElementById('continue').disabled = true; document.getElementById('working').style.display = 'inline-block';"
+    <mt:If tag="Version" lt="5">style="max-height: 350px; overflow-y: auto; overflow-x: hidden;"</mt:If>>
     <input type="hidden" name="__mode" value="send_<mt:If name="blog_ids">blogs_</mt:If>to_queue" />
     <input type="hidden" name="create_job" value="1" />
 <mt:If name="blog_id">
@@ -32,11 +33,15 @@
 
     <mtapp:setting
         id="email"
-        label_class="top-label"
         label="<__trans phrase="Email Address">"
         hint="Send an email to this email address when the process is complete. Separate multiple addresses with a comma; specify no address to <em>not</em> send an email."
         show_hint="1">
-        <input type="text" name="email" value="<$mt:var name="default_email"$>" size="60" />
+        <input type="text"
+            name="email"
+            value="<mt:Var name="default_email">"
+            class="full full-width" />
+    </mtapp:setting>
+
     <mtapp:setting
         id="review"
         label="<__trans phrase="Selected Blogs">">
@@ -61,13 +66,13 @@
                 type="submit"
                 accesskey="s"
                 title="<__trans phrase="Continue (c)">"
-                class="primary-button"
+                class="action primary button primary-button"
                 ><__trans phrase="Continue"></button>
             <button
-                onclick="closeDialog(); return false"
+                onclick="<mt:If tag="Version" lt="5">closeDialog(); return false</mt:If>"
                 type="submit"
                 accesskey="x"
-                class="cancel close"
+                class="action button cancel close mt-close-dialog"
                 title="<__trans phrase="Close (x)">"
                 ><__trans phrase="Close"></button>
         </div>

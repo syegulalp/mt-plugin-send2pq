@@ -90,14 +90,26 @@ sub send_blogs_to_queue {
     my ($param) = @_;
     my $q       = $app->can('query') ? $app->query : $app->param;
     $param ||= {};
+
     if ( $q->param('create_job') ) {
         my @blog_ids = split(/,/, $q->param('blog_ids') );
         foreach my $blog_id (@blog_ids) {
             _create_batch( $blog_id, $q->param('email') );
         }
-        return $app->load_tmpl( 'dialog/close.tmpl' );
+
+        # Redirect back to the blog listing screen.
+        if ( $app->product_version =~ /^5/ ) {
+            return $app->redirect(
+                $app->{cfg}->CGIPath . $app->{cfg}->AdminScript
+                . "?__mode=list&_type=blog&blog_id=0"
+            );
+        }
+        else {
+            return $app->load_tmpl( 'dialog/close.tmpl' );
+        }
     }
-    $param->{blog_ids}       = join( ',', $q->param('id') );
+
+    $param->{blog_ids}      = join( ',', $q->param('id') );
     $param->{default_email} = $app->user->email;
     return $app->load_tmpl( 'dialog/send_to_queue.tmpl', $param );
 }
@@ -112,8 +124,19 @@ sub send_to_queue {
 
     if ($q->param('create_job')) {
         _create_batch( $app->blog->id, $q->param('email') );
-        return $app->load_tmpl( 'dialog/close.tmpl' );
+
+        # Redirect back to the template listing screen.
+        if ( $app->product_version =~ /^5/ ) {
+            return $app->redirect(
+                $app->{cfg}->CGIPath . $app->{cfg}->AdminScript
+                . "?__mode=list_template&blog_id=" . $app->blog->id
+            );
+        }
+        else {
+            return $app->load_tmpl( 'dialog/close.tmpl' );
+        }
     }
+
     $param->{batch_exists}
         = MT->model('pub_batch')->exist({ blog_id => $app->blog->id });
     $param->{blog_id}       = $app->blog->id;

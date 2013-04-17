@@ -43,5 +43,6 @@ list_actions:
       code: $Send2PQ::Send2PQ::Plugin::send_blogs_to_queue
       dialog: 1
       permission: publish_post
+      no_prompt: 1
 
 tasks: $Send2PQ::Send2PQ::Plugin::load_tasks
