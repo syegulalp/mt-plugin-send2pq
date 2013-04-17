@@ -1,17 +1,19 @@
-This plugin provides a link on the Manage Templates screen labeled 
-"Send to Publish Queue." When clicked, the user will have the choice
-to send every template to the publish queue to be published later.
-Once the job is complete, another cleanup task will go through and
-email interested parties when publishing is complete.
+# Send to Publish Queue plugin for Movable Type
 
-This plugin was conceived to help speed up the process of rebuilding
-an entire blog immediately after a deployment. The plugin will instruct
-MT to update every file, but will send every file to the publish 
-queue regardless of its settings.
+This plugin provides administrators with the ability to republish a blog through the Publish Queue. Send to Publish Queue can be used to republish one or many blogs:
 
-Send to Publish Queue can also be used to republish many blogs: visit System 
-Overview > Blogs, select the blogs you'd like republished, and choose "Send to
-Publish Queue" from the List Actions.
+* Visit System Overview > Blogs, select the blogs you'd like republished, and choose "Send to Publish Queue" from the List Actions.
+* Visit Design > Templates and choose the Action "Send to Publish Queue."
+
+The plugin will send every template to the Publish Queue to be published later.
+Once the publishing job is complete, another cleanup task will go through and email the specified parties.
+
+[Learn more](http://www.movabletype.org/documentation/administrator/publishing/publish-queue.html) about the Publish Queue.
+
+# Prerequisites
+
+* Movable Type 4.x or 5.x
+* `run-periodic-tasks` must be set up ([instructions](http://www.movabletype.org/documentation/administrator/setting-up-run-periodic-taskspl.html))
 
 # Installation
 
