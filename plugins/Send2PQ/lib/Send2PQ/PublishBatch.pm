@@ -7,7 +7,7 @@ __PACKAGE__->install_properties({
     column_defs => {
         id => 'integer not null auto_increment',
         blog_id => 'integer not null',
-        email => 'string(255)', 
+        email => 'string(255)',
     },
     audit => 1,
     datasource  => 'pub_batch',

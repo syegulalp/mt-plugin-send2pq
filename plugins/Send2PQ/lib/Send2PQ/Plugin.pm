@@ -9,8 +9,8 @@ sub load_tasks {
         'PublishBatchCleanUp' => {
             'label' => 'Cleanup Finished Publish Batches',
             'frequency' => 1, #3 * 60,
-            'code' => sub { 
-                Send2PQ::Plugin->task_cleanup; 
+            'code' => sub {
+                Send2PQ::Plugin->task_cleanup;
             }
         }
     };
@@ -28,21 +28,21 @@ sub task_cleanup {
             # send warning if it has been on the queue too long
         } else {
             if ($batch->email) {
-                MT->log({ 
+                MT->log({
                     message => 'It appears the publishing batch with an ID '
-                             . 'of ' .$batch->id. ' has finished. Notifying ' 
+                             . 'of ' .$batch->id. ' has finished. Notifying '
                              . $batch->email . ' and cleaning up.',
                     class   => "system",
                     blog_id => $batch->blog->id,
                     level   => MT::Log::INFO()
                 });
-                my $date = format_ts( "%Y-%m-%d", 
-                                      $batch->created_on, 
-                                      $batch->blog, 
+                my $date = format_ts( "%Y-%m-%d",
+                                      $batch->created_on,
+                                      $batch->blog,
                                       undef );
                 require MT::Mail;
                 my %head = (
-                    To => $batch->email,
+                    To      => $batch->email,
                     Subject => '['
                              . $batch->blog->name
                              . '] Publishing Batch Finished'
@@ -50,7 +50,7 @@ sub task_cleanup {
                 my $body = "The publishing batch you initiated on $date has "
                          . "completed. See for yourself:\n\n"
                          . $batch->blog->site_url . "\n\n";
-                
+
                 if ( !MT::Mail->send(\%head, $body) ) {
                     # Mail failed to be sent.
                     MT->log({
@@ -86,9 +86,9 @@ sub task_cleanup {
 }
 
 sub send_blogs_to_queue {
-    my $app = shift;
+    my $app     = shift;
     my ($param) = @_;
-    my $q       = $app->{query};
+    my $q       = $app->can('query') ? $app->query : $app->param;
     $param ||= {};
     if ( $q->param('create_job') ) {
         my @blog_ids = split(/,/, $q->param('blog_ids') );
@@ -103,9 +103,9 @@ sub send_blogs_to_queue {
 }
 
 sub send_to_queue {
-    my $app = shift;
+    my $app     = shift;
     my ($param) = @_;
-    my $q       = $app->{query};
+    my $q       = $app->can('query') ? $app->query : $app->param;
     $param ||= {};
 
     return unless $app->blog;
@@ -168,7 +168,7 @@ sub build_file {
     }
 }
 
-# Adds every non-disabled template to the publish queue. 
+# Adds every non-disabled template to the publish queue.
 # This is a near copy of the build_file_filter in MT::WeblogPublisher
 sub send_all_to_queue {
     my ( $cb, %args ) = @_;
@@ -256,10 +256,10 @@ sub send_all_to_queue {
     $job->priority( $priority );
     $job->grabbed_until(1);
     $job->run_after(1);
-    $job->coalesce( ( $fi->blog_id || 0 ) . ':' . $$ . ':' . 
+    $job->coalesce( ( $fi->blog_id || 0 ) . ':' . $$ . ':' .
                     $priority . ':' . ( time - ( time % 10 ) ) );
 
-    # Note to self - this does not appear to utilize TheSchwart's insert 
+    # Note to self - this does not appear to utilize TheSchwart's insert
     # routine. Should this be fixed?
     # $job->save or MT->log({
     # Using the insert routine seems to work... and fixes an error on a
