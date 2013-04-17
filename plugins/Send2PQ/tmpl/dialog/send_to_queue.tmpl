@@ -37,6 +37,18 @@
         hint="Send an email to this email address when the process is complete. Separate multiple addresses with a comma; specify no address to <em>not</em> send an email."
         show_hint="1">
         <input type="text" name="email" value="<$mt:var name="default_email"$>" size="60" />
+    <mtapp:setting
+        id="review"
+        label="<__trans phrase="Selected Blogs">">
+        <ul>
+        <mt:If name="blog_id">
+            <li><mt:BlogName></li>
+        <mt:Else>
+            <mt:Blogs include_blogs="$blog_ids">
+            <li><mt:BlogName></li>
+            </mt:Blogs>
+        </mt:If>
+        </ul>
     </mtapp:setting>
 
     <div class="actions-bar">
