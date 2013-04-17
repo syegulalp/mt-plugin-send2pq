@@ -21,6 +21,7 @@
 <form name="send_to_queue"
     method="post"
     action="<mt:Var name="script_url">"
+    onclick="document.getElementById('continue').disabled = true; document.getElementById('working').style.display = 'inline-block';">
     <input type="hidden" name="__mode" value="send_<mt:If name="blog_ids">blogs_</mt:If>to_queue" />
     <input type="hidden" name="create_job" value="1" />
 <mt:If name="blog_id">
@@ -40,6 +41,9 @@
 
     <div class="actions-bar">
         <div class="actions-bar-inner pkg actions">
+            <img src="<mt:StaticWebPath>images/indicator.white.gif"
+                id="working"
+                style="display: none;" />
             <button
                 id="continue"
                 type="submit"
